@@ -35,15 +35,65 @@ xcodebuild archive \
   BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
   -quiet
 
-# 3. Generate Module Map Manually if missing
-# XCFrameworks from SPM packages built with xcodebuild archive often miss the .swiftmodule in the framework bundle.
-# We will assume standard Swift module structure.
+# 3. Manual Module Fix
+echo "Fixing Missing Modules..."
+
+# Helper to find and copy swiftmodule
+copy_modules() {
+    local archive_path="$1"
+    local framework_path="$2"
+    local sdk="$3"
+    
+    echo "Generating modules for $sdk..."
+    
+    # Since xcodebuild archive didn't put them in the framework, we rebuild just the module interface using swiftc
+    # This is a hack but necessary when xcodebuild doesn't behave.
+    
+    mkdir -p "$framework_path/Modules"
+    
+    # We need to find where the swift files are.
+    # Using the source directory
+    local swift_files=$(find "$SOURCE_DIR/Sources/ExampleFramework" -name "*.swift")
+    
+    # Determine target triple
+    local target=""
+    if [ "$sdk" == "iphoneos" ]; then
+        target="arm64-apple-ios14.0"
+    else
+        target="arm64-apple-ios14.0-simulator"
+    fi
+    
+    # Run swiftc to emit the module interface
+    # We use -emit-module-only to avoid linking errors and temporary file issues
+    xcrun -sdk $sdk swiftc \
+        -emit-module \
+        -emit-module-path "$framework_path/Modules/$FRAMEWORK_NAME.swiftmodule" \
+        -module-name "$FRAMEWORK_NAME" \
+        -target "$target" \
+        $swift_files
+        
+    # Also create a module map
+    cat > "$framework_path/Modules/module.modulemap" <<EOF
+framework module $FRAMEWORK_NAME {
+    umbrella header "$FRAMEWORK_NAME.h"
+    export *
+    module * { export * }
+}
+EOF
+    
+    # Create dummy umbrella header if missing
+    if [ ! -f "$framework_path/Headers/$FRAMEWORK_NAME.h" ]; then
+        mkdir -p "$framework_path/Headers"
+        echo "// $FRAMEWORK_NAME.h" > "$framework_path/Headers/$FRAMEWORK_NAME.h"
+        echo "//#import <Foundation/Foundation.h>" >> "$framework_path/Headers/$FRAMEWORK_NAME.h"
+    fi
+}
 
 IOS_FW_PATH="$BUILD_DIR/ios.xcarchive/Products/usr/local/lib/$FRAMEWORK_NAME.framework"
 SIM_FW_PATH="$BUILD_DIR/sim.xcarchive/Products/usr/local/lib/$FRAMEWORK_NAME.framework"
 
-# Verify if Modules folder exists, if not, we have a problem.
-# We can try to build using `swift build` to get the modules if xcodebuild fails.
+copy_modules "$BUILD_DIR/ios.xcarchive" "$IOS_FW_PATH" "iphoneos"
+copy_modules "$BUILD_DIR/sim.xcarchive" "$SIM_FW_PATH" "iphonesimulator"
 
 # 4. Create XCFramework
 echo "Creating XCFramework..."
