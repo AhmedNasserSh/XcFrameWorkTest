@@ -16,8 +16,8 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .binaryTarget(
             name: "ExampleFramework",
-            url: "https://github.com/YOUR_GITHUB_USERNAME/XcFrameWorkTest/releases/download/1.0.0/ExampleFramework.xcframework.zip",
-            checksum: "f6c08063c512b03a2cc093adce6cc0bcc346193983245645640dbc0b4481430c"
+            url: "https://github.com/AhmedNasserSh/XcFrameWorkTest/releases/download/1.0.0/ExampleFramework.xcframework.zip",
+            checksum: "735ed323d01b16bb2f2cb9de3d1cffa8b1fec86d33cddb91228d8a757def9189"
         )
     ]
 )
