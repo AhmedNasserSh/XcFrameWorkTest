@@ -64,12 +64,14 @@ copy_modules() {
     fi
     
     # Run swiftc to emit the module interface
-    # We use -emit-module-only to avoid linking errors and temporary file issues
+    # Enable library evolution and module stability
     xcrun -sdk $sdk swiftc \
         -emit-module \
         -emit-module-path "$framework_path/Modules/$FRAMEWORK_NAME.swiftmodule" \
         -module-name "$FRAMEWORK_NAME" \
         -target "$target" \
+        -enable-library-evolution \
+        -emit-module-interface-path "$framework_path/Modules/$FRAMEWORK_NAME.swiftinterface" \
         $swift_files
         
     # Also create a module map
