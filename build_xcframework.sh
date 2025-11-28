@@ -94,7 +94,11 @@ EOF
     if [ ! -f "$framework_path/Headers/$FRAMEWORK_NAME.h" ]; then
         mkdir -p "$framework_path/Headers"
         echo "// $FRAMEWORK_NAME.h" > "$framework_path/Headers/$FRAMEWORK_NAME.h"
-        echo "//#import <Foundation/Foundation.h>" >> "$framework_path/Headers/$FRAMEWORK_NAME.h"
+        echo "#import <Foundation/Foundation.h>" >> "$framework_path/Headers/$FRAMEWORK_NAME.h"
+        echo "//! Project version number for $FRAMEWORK_NAME." >> "$framework_path/Headers/$FRAMEWORK_NAME.h"
+        echo "FOUNDATION_EXPORT double ${FRAMEWORK_NAME}VersionNumber;" >> "$framework_path/Headers/$FRAMEWORK_NAME.h"
+        echo "//! Project version string for $FRAMEWORK_NAME." >> "$framework_path/Headers/$FRAMEWORK_NAME.h"
+        echo "FOUNDATION_EXPORT const unsigned char ${FRAMEWORK_NAME}VersionString[];" >> "$framework_path/Headers/$FRAMEWORK_NAME.h"
     fi
 }
 
