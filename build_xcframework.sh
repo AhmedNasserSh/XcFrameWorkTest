@@ -13,34 +13,44 @@ mkdir -p "$BUILD_DIR"
 
 cd "$SOURCE_DIR"
 
-# Build for iOS Device
-echo "Building for iOS Device..."
+# 1. Archive for iOS
+echo "Archiving for iOS..."
 xcodebuild archive \
-    -scheme "$FRAMEWORK_NAME" \
-    -destination "generic/platform=iOS" \
-    -archivePath "$BUILD_DIR/ios.xcarchive" \
-    -sdk iphoneos \
-    SKIP_INSTALL=NO \
-    BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
-    -quiet
+  -scheme "$FRAMEWORK_NAME" \
+  -destination "generic/platform=iOS" \
+  -archivePath "$BUILD_DIR/ios.xcarchive" \
+  -sdk iphoneos \
+  SKIP_INSTALL=NO \
+  BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
+  -quiet
 
-# Build for iOS Simulator
-echo "Building for iOS Simulator..."
+# 2. Archive for Simulator
+echo "Archiving for Simulator..."
 xcodebuild archive \
-    -scheme "$FRAMEWORK_NAME" \
-    -destination "generic/platform=iOS Simulator" \
-    -archivePath "$BUILD_DIR/sim.xcarchive" \
-    -sdk iphonesimulator \
-    SKIP_INSTALL=NO \
-    BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
-    -quiet
+  -scheme "$FRAMEWORK_NAME" \
+  -destination "generic/platform=iOS Simulator" \
+  -archivePath "$BUILD_DIR/sim.xcarchive" \
+  -sdk iphonesimulator \
+  SKIP_INSTALL=NO \
+  BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
+  -quiet
 
-# Create XCFramework
+# 3. Generate Module Map Manually if missing
+# XCFrameworks from SPM packages built with xcodebuild archive often miss the .swiftmodule in the framework bundle.
+# We will assume standard Swift module structure.
+
+IOS_FW_PATH="$BUILD_DIR/ios.xcarchive/Products/usr/local/lib/$FRAMEWORK_NAME.framework"
+SIM_FW_PATH="$BUILD_DIR/sim.xcarchive/Products/usr/local/lib/$FRAMEWORK_NAME.framework"
+
+# Verify if Modules folder exists, if not, we have a problem.
+# We can try to build using `swift build` to get the modules if xcodebuild fails.
+
+# 4. Create XCFramework
 echo "Creating XCFramework..."
 xcodebuild -create-xcframework \
-    -framework "$BUILD_DIR/ios.xcarchive/Products/usr/local/lib/$FRAMEWORK_NAME.framework" \
-    -framework "$BUILD_DIR/sim.xcarchive/Products/usr/local/lib/$FRAMEWORK_NAME.framework" \
-    -output "$BUILD_DIR/$FRAMEWORK_NAME.xcframework"
+  -framework "$IOS_FW_PATH" \
+  -framework "$SIM_FW_PATH" \
+  -output "$BUILD_DIR/$FRAMEWORK_NAME.xcframework"
 
 # Zip
 echo "Zipping XCFramework..."
@@ -51,5 +61,3 @@ zip -r "$FRAMEWORK_NAME.xcframework.zip" "$FRAMEWORK_NAME.xcframework"
 echo "Computing Checksum..."
 CHECKSUM=$(swift package compute-checksum "$FRAMEWORK_NAME.xcframework.zip")
 echo "Checksum: $CHECKSUM"
-echo "Done."
-

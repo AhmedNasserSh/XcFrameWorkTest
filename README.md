@@ -5,7 +5,7 @@ This project demonstrates how to build and distribute an XCFramework via Swift P
 ## Structure
 
 *   `Source/`: Contains the source code for the framework.
-*   `Distribution/`: Contains the `Package.swift` that consumers will use to install the binary framework.
+*   `Package.swift`: The distribution manifest that consumers use to install the binary framework.
 *   `build_xcframework.sh`: Script to build the XCFramework and generate the checksum.
 
 ## How to Release
@@ -17,21 +17,22 @@ This project demonstrates how to build and distribute an XCFramework via Swift P
     ```
     This will output the checksum at the end.
 
-2.  **Create a GitHub Release**
-    *   Push this repository to GitHub.
-    *   Go to the "Releases" section and create a new release (e.g., `1.0.0`).
-    *   Upload the `build/ExampleFramework.xcframework.zip` file to the release assets.
-    *   Publish the release.
-
-3.  **Update Distribution Package**
-    *   Open `Distribution/Package.swift`.
-    *   Update the `url` to point to your new release asset:
-        `https://github.com/<YOUR_USERNAME>/XcFrameWorkTest/releases/download/1.0.0/ExampleFramework.xcframework.zip`
+2.  **Update Package.swift**
+    *   Update the `url` to point to your new release asset (e.g. `.../releases/download/1.0.1/ExampleFramework.xcframework.zip`).
     *   Update the `checksum` with the value printed by the build script.
-    *   Commit and push the changes to `Distribution/Package.swift`.
+    *   Commit and push the changes.
+    *   Tag the commit (e.g., `1.0.1`).
+    *   Push the tag.
+
+3.  **Create a GitHub Release**
+    *   Go to the "Releases" section on GitHub.
+    *   Draft a new release using the tag you just pushed.
+    *   **Crucial**: Upload the `build/ExampleFramework.xcframework.zip` file to the release assets.
+    *   Publish the release.
 
 ## How to Use
 
-Consumers can now add your package by using the git URL of this repo (or the specific path if it's a monorepo, though typically the Distribution package is in its own repo or root).
+Consumers can add this package by using the git URL of this repository:
+`https://github.com/AhmedNasserSh/XcFrameWorkTest`
 
-Since this example has the Distribution package in a subdirectory, in a real-world scenario, you would likely have the `Distribution/Package.swift` at the root of a dedicated "distribution" repository.
+No special sub-paths are needed anymore as `Package.swift` is at the root.
