@@ -9,9 +9,14 @@ SOURCE_DIR="${ROOT_DIR}/Source"
 
 # Clean
 rm -rf "$BUILD_DIR"
+rm -rf "$SOURCE_DIR/.swiftpm"
 mkdir -p "$BUILD_DIR"
 
 cd "$SOURCE_DIR"
+
+# Debug: Print Source Content
+echo "DEBUG: Source content:"
+cat Sources/ExampleFramework/Example.swift
 
 # 1. Archive for iOS
 echo "Archiving for iOS..."
@@ -20,6 +25,7 @@ xcodebuild archive \
   -destination "generic/platform=iOS" \
   -archivePath "$BUILD_DIR/ios.xcarchive" \
   -sdk iphoneos \
+  -derivedDataPath "$BUILD_DIR/DerivedData" \
   SKIP_INSTALL=NO \
   BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
   -quiet
@@ -31,6 +37,7 @@ xcodebuild archive \
   -destination "generic/platform=iOS Simulator" \
   -archivePath "$BUILD_DIR/sim.xcarchive" \
   -sdk iphonesimulator \
+  -derivedDataPath "$BUILD_DIR/DerivedData" \
   SKIP_INSTALL=NO \
   BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
   -quiet
